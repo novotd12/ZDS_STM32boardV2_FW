@@ -1,0 +1,14 @@
+../Core/Src/main.c:248:9:printNumToBuff.constprop	6
+../Core/Src/main.c:119:6:HAL_UART_RxCpltCallback	20
+../Core/Src/main.c:153:6:EXTI3_IRQHandler	16
+../Core/Src/main.c:243:6:HAL_UART_TxCpltCallback	1
+../Core/Src/main.c:248:9:printNumToBuff	11
+../Core/Src/main.c:282:6:HAL_ADC_ConvCpltCallback	1
+../Core/Src/main.c:291:6:myDelayUs	2
+../Core/Src/main.c:297:6:writeGPIO	21
+../Core/Src/main.c:313:6:writeDACcode	7
+../Core/Src/main.c:324:6:adcTracking	5
+../Core/Src/main.c:346:6:HAL_TIM_PeriodElapsedCallback	6
+../Core/Src/main.c:479:6:SystemClock_Config	3
+../Core/Src/main.c:376:5:main	45
+../Core/Src/main.c:898:6:Error_Handler	1

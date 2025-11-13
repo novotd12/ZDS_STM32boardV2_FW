@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (10.3-2021.10)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -34,34 +34,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := ZDSstmBoardV2
+BUILD_ARTIFACT_NAME := ZDS_STM32boardV2_FW
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-ZDSstmBoardV2.elf \
+ZDS_STM32boardV2_FW.elf \
 
 MAP_FILES += \
-ZDSstmBoardV2.map \
+ZDS_STM32boardV2_FW.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-ZDSstmBoardV2.list \
+ZDS_STM32boardV2_FW.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: ZDSstmBoardV2.elf secondary-outputs
+main-build: ZDS_STM32boardV2_FW.elf secondary-outputs
 
 # Tool invocations
-ZDSstmBoardV2.elf ZDSstmBoardV2.map: $(OBJS) $(USER_OBJS) C:\Users\novotd12\Documents\STM32_WORKSPACE\ZDSstmBoardV2\STM32G441KBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "ZDSstmBoardV2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\novotd12\Documents\STM32_WORKSPACE\ZDSstmBoardV2\STM32G441KBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ZDSstmBoardV2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+ZDS_STM32boardV2_FW.elf ZDS_STM32boardV2_FW.map: $(OBJS) $(USER_OBJS) C:\Users\novotd12\Documents\STM32_WORKSPACE\ZDS_STM32boardV2_FW\STM32G441KBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "ZDS_STM32boardV2_FW.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\novotd12\Documents\STM32_WORKSPACE\ZDS_STM32boardV2_FW\STM32G441KBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ZDS_STM32boardV2_FW.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +70,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-ZDSstmBoardV2.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "ZDSstmBoardV2.list"
+ZDS_STM32boardV2_FW.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "ZDS_STM32boardV2_FW.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) ZDSstmBoardV2.elf ZDSstmBoardV2.list ZDSstmBoardV2.map default.size.stdout
+	-$(RM) ZDS_STM32boardV2_FW.elf ZDS_STM32boardV2_FW.list ZDS_STM32boardV2_FW.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

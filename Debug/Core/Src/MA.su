@@ -1,0 +1,4 @@
+../Core/Src/MA.c:3:6:MovingAverage_Init	0	static
+../Core/Src/MA.c:17:7:MovingAverage_Update	0	static
+../Core/Src/MA.c:41:7:MovingAverage_GetValue	0	static
+../Core/Src/MA.c:47:6:MovingAverage_SetSize	36	static

@@ -79,7 +79,7 @@ volatile uint8_t actAdcFlag = 0;
 volatile uint8_t adcRunning = 0;
 volatile int32_t actFirVal = 0;
 volatile int32_t actAdcVal = 0;
-volatile int32_t outValue = 0;
+volatile float outValue = 0;
 volatile int32_t accValue = 0;
 
 #define OFFmode	0
@@ -93,28 +93,46 @@ volatile int32_t accValue = 0;
 volatile uint8_t mode = OFFmode;
 volatile uint8_t rxData = 0;
 
-volatile int32_t Integrator_1 = 0;
-volatile int32_t Integrator_2 = 0;
-volatile int32_t Integrator_3 = 0;
-volatile int32_t Integrator_3_d2 = 0;
-volatile int32_t diff_1 = 0;
-volatile int32_t diff_2 = 0;
-volatile int32_t diff_3 = 0;
-volatile int32_t diff_1_d = 0;
-volatile int32_t diff_2_d = 0;
+volatile int64_t Integrator_1 = 0;
+volatile int64_t Integrator_2 = 0;
+volatile int64_t Integrator_3 = 0;
+volatile int64_t Integrator_3_d2 = 0;
+volatile int64_t diff_1 = 0;
+volatile int64_t diff_2 = 0;
+volatile int64_t diff_3 = 0;
+volatile int64_t diff_1_d = 0;
+volatile int64_t diff_2_d = 0;
 
 volatile int32_t uartRxCt=0;
 volatile int32_t uartTxCt=0;
+volatile float MAoutput = 0;
 
 #define LOW		0
 #define HIGH	1
 volatile int32_t adcTrackingCount = 0;
 volatile int32_t test_cnt = 0;
 
+MovingAverage_t ma_filter;
+volatile uint32_t lastDecRatio = 0;
+
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void sincReset(void){
+	diff_1  = 0;
+	diff_3 = 0;
+	diff_2 = 0;
+	diff_1_d = 0;
+	diff_2_d = 0;
+	Integrator_1 = 0;
+	Integrator_2 = 0;
+	Integrator_3 = 0;
+	Integrator_3_d2 = 0;
+}
+
+
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	uartRxCt=200;
@@ -124,29 +142,30 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	Integrator_3 =0;
 
 	switch(rxData){
-		case 'a': mode = FIRmode; decRatio = 32;   break;
-		case 'b': mode = MAmode;  decRatio = 64;   break;
-		case 'c': mode = MAmode;  decRatio = 128;  break;
-		case 'd': mode = MAmode;  decRatio = 256;  break;
-		case 'e': mode = MAmode;  decRatio = 512;  break;
-		case 'f': mode = MAmode;  decRatio = 1024; break;
-		case 'g': mode = MAmode;  decRatio = 4096; break;
-		case 'h': mode = SARmode; decRatio = 1;    break;
-		case 'i': mode = RAWmode; decRatio = 1;    break;
-		case 'j': mode = SINCmode; decRatio = 32;   break;
-		case 'k': mode = SINCmode; decRatio = 64;   break;
-		case 'l': mode = SINCmode; decRatio = 128;  break;
-		case 'm': mode = SINCmode; decRatio = 256;  break;
-		case 'n': mode = SINCmode; decRatio = 512;  break;
-		case 'o': mode = SINCmode; decRatio = 1024; break;
-		case 'p': mode = SINCmode; decRatio = 4096; break;
+
+
+		case 'h': mode = SARmode; decRatio = 1;    break; // SAR 0 0 ... up to 5 kHz
+		case 'i': mode = RAWmode; decRatio = 1;    break; // RAW (1/0) ... up to 50 kHz
+
+		case 'j': mode = SINCmode; decRatio = 32;   break; // SAR SINC MA ... up to 100kHz
+		case 'k': mode = SINCmode; decRatio = 64;   break; // SAR SINC MA ... up to 100kHz
+		case 'l': mode = SINCmode; decRatio = 128;  break; // SAR SINC MA ... up to 100kHz
+		case 'm': mode = SINCmode; decRatio = 256;  break; // SAR SINC MA ... up to 100kHz
+		case 'n': mode = SINCmode; decRatio = 512;  break; // SAR SINC MA ... up to 100kHz
+		case 'o': mode = SINCmode; decRatio = 1024; break; // SAR SINC MA ... up to 100kHz
 
 		case 'r': mode = TRACKmode; htim4.Instance->ARR = 999; break; // 1kHz
 		case 's': mode = TRACKmode; htim4.Instance->ARR = 99; break; // 10kHz
 		case 't': mode = TRACKmode; htim4.Instance->ARR = 19; break; // 50kHz
 
-		default: mode = OFFmode; break;
+		default: break;
 	}
+	if(lastDecRatio != decRatio){
+		lastDecRatio = decRatio;
+		MovingAverage_SetSize(&ma_filter, decRatio);
+		sincReset();
+	}
+
 	  UART_Start_Receive_IT(&huart1, (uint8_t*)&rxData, 1);
 }
 
@@ -156,30 +175,27 @@ void EXTI3_IRQHandler(void){
 	    if(mode!=RAWmode){
     	if(mode!=SARmode){
     		if(mode!=OFFmode){
-    			int32_t Data_in;
+    			int32_t data_in = 0;
 				if(HAL_GPIO_ReadPin(SD_DOUT_GPIO_Port, SD_DOUT_Pin)==GPIO_PIN_RESET){
-					accValue += 10000;
-					Data_in = 1;
-					if(mode == FIRmode){
-						actFirVal = updateFIR(+10000);
-					}
+					//accValue += 10000;
+					data_in = 1;
+					//if(mode == FIRmode){
+					//	actFirVal = updateFIR(+10000);
+					//}
 				}else{
-					accValue -= 10000;
-					Data_in = -1;
-					if(mode == FIRmode){
-						actFirVal = updateFIR(-10000);
-					}
+					//accValue -= 10000;
+					data_in = -1;
+					//if(mode == FIRmode){
+					//	actFirVal = updateFIR(-10000);
+					//}
 				}
+		        MAoutput = MovingAverage_Update(&ma_filter, data_in*10000);
+
 				if(clockCounter<(decRatio-1)){
 					clockCounter++;
 				}else{
 					clockCounter=0;
 
-					if(mode == FIRmode){
-						actFirValDec = actFirVal;
-					}else{
-						actFirValDec = 0;
-					}
 
 					diff_3 = diff_2 - diff_2_d;
 					diff_2_d = diff_2;
@@ -188,11 +204,7 @@ void EXTI3_IRQHandler(void){
 					diff_1 = Integrator_3 - Integrator_3_d2;
 					Integrator_3_d2 = Integrator_3;
 
-					if(mode==SINCmode){
-						outValue = diff_3;
-					}else{
-						outValue = accValue;
-					}
+					outValue = diff_3*10000.0f;
 
 					accValue = 0;
 					sendFlag = 1;
@@ -203,7 +215,7 @@ void EXTI3_IRQHandler(void){
 				}
 				Integrator_3 += Integrator_2;
 				Integrator_2 += Integrator_1;
-				Integrator_1 += Data_in;
+				Integrator_1 += data_in;
     		}
     	}else{
 			actFirValDec = 0;
@@ -405,6 +417,9 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
+  MovingAverage_Init(&ma_filter, 32);
+
   HAL_TIM_Base_Start(&htim2);
   HAL_Delay(100);
   for(uint8_t i=0;i<5;i++){
@@ -418,6 +433,7 @@ int main(void)
   UART_Start_Receive_IT(&huart1, (uint8_t*)&rxData, 1);
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_Base_Start_IT(&htim4);
+
 
   /* USER CODE END 2 */
 
@@ -433,10 +449,10 @@ int main(void)
 			  dmaSize = printNumToBuff(0, (uint8_t*)dmaBuff, actAdcVal, 1, 1);
 			  *(dmaBuff+dmaSize) = ' ';
 			  dmaSize++;
-			  dmaSize = printNumToBuff(dmaSize, (uint8_t*)dmaBuff, outValue/decRatio, 1, 1);
+			  dmaSize = printNumToBuff(dmaSize, (uint8_t*)dmaBuff, outValue/(decRatio*decRatio*decRatio), 1, 1);
 			  *(dmaBuff+dmaSize) = ' ';
 			  dmaSize++;
-			  dmaSize = printNumToBuff(dmaSize, (uint8_t*)dmaBuff, actFirValDec, 1, 1);
+			  dmaSize = printNumToBuff(dmaSize, (uint8_t*)dmaBuff, MAoutput, 1, 1);
 			  *(dmaBuff+dmaSize) = '\r';
 			  dmaSize++;
 			  *(dmaBuff+dmaSize) = '\n';
